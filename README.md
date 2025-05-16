@@ -46,6 +46,50 @@ data/
 
 ## Example request
 
+To extract data from an invoice. 
+
+### Request parameters
+
+- URL: **`http://83.228.197.248:3000/ask`**
+- model: **`mistral`**
+- context: **`invoice`**
+- message: **`<INVOICE_RAW_TEXT_HERE>`**
+
+### Curl 
+
+```bash 
+curl -X 'POST' \
+  'http://83.228.197.248:3000/ask' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: multipart/form-data' \
+  -F 'message=Devis #25051510 15 mai 2025 Tarif Description Prix Quantité TVA * Total Forfait 1 demi-journée 400 EUR 2 0 800 EUR TOTAL : 800 EUR * TVA non-applicable (article 293B du Code Général des Impôts) MONTPELLIER - FRANCE' \
+  -F 'model=mistral' \
+  -F 'sessionId=' \
+  -F 'walletAddress=' \
+  -F 'context=invoice' \
+  -F 'data=' \
+  -F 'file='
+```
+
+### Response body 
+
+```json 
+{
+  "output": "```json\n{\n    \"invoice_number\": \"25051510\",\n    \"issuance_date\": \"2025-05-15\",\n    \"total_amount\": 800\n}\n```",
+  "model": "mistral-large-2411",
+  "network": "arbitrum-sepolia",
+  "txHash": "0x52863cb20872a82c6b5930551e8aa4d294e10990f4b0589b0365ab48ea2a7114",
+  "explorerLink": "https://sepolia.arbiscan.io/tx/0x52863cb20872a82c6b5930551e8aa4d294e10990f4b0589b0365ab48ea2a7114",
+  "sessionId": "941bf70c-c703-4b90-89f9-6fb335b38551",
+  "usage": {
+    "input_tokens": 412,
+    "output_tokens": 27
+  }
+}
+```
+
+## Start method
+
 ### Request body (curl)
 
 PDF file max size is set to 10MB.
