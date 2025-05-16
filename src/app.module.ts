@@ -13,6 +13,7 @@ import { CostTracker } from './memory/cost-tracking.service';
 import { SiweModule } from './siwe/siwe.module';
 import { SubsService } from './subs/subs.service';
 import { WebReaderModule } from './web/web-reader.module';
+import { StartModule } from './start/start.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { WebReaderModule } from './web/web-reader.module';
     AnthropicModule,
     SiweModule,
     WebReaderModule,
+    StartModule,
   ],
   controllers: [AppController],
   providers: [
