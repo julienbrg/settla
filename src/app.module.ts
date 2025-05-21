@@ -14,6 +14,7 @@ import { SiweModule } from './siwe/siwe.module';
 import { SubsService } from './subs/subs.service';
 import { WebReaderModule } from './web/web-reader.module';
 import { StartModule } from './start/start.module';
+import { ExtractModule } from './extract/extract.module'; // Import the new ExtractModule
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { StartModule } from './start/start.module';
     SiweModule,
     WebReaderModule,
     StartModule,
+    ExtractModule, // Add the ExtractModule to the imports array
   ],
   controllers: [AppController],
   providers: [
