@@ -15,7 +15,7 @@ import {
 } from '@nestjs/swagger';
 import { PdfFileValidator } from '../validators/pdf-file.validator';
 import { ExtractService } from './extract.service';
-import { AskResponseDto } from '../dto/ask-response.dto';
+import { ExtractResponseDto } from '../dto/extract-response.dto';
 
 @ApiTags('Extract')
 @Controller('extract')
@@ -44,7 +44,7 @@ export class ExtractController {
   @ApiResponse({
     status: 201,
     description: 'Invoice information extracted successfully',
-    type: AskResponseDto,
+    type: ExtractResponseDto,
   })
   @ApiResponse({
     status: 400,
@@ -53,7 +53,7 @@ export class ExtractController {
   async extractInvoiceData(
     @UploadedFile(new PdfFileValidator({ maxSize: 10 * 1024 * 1024 }))
     file: Express.Multer.File,
-  ): Promise<AskResponseDto> {
+  ): Promise<ExtractResponseDto> {
     this.logger.log(`Processing invoice extraction for: ${file.originalname}`);
     return this.extractService.extractInvoiceData(file);
   }
