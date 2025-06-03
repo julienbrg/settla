@@ -2,6 +2,8 @@
 
 Allows users to schedule payment requests for a given invoice.
 
+API live at **http://83.228.197.248:3000/api**
+
 ## Install
 
 ```bash
@@ -50,70 +52,36 @@ To extract data from an invoice.
 
 ### Request parameters
 
-- URL: **`http://83.228.197.248:3000/ask`**
-- model: **`mistral`**
-- context: **`invoice`**
-- message: **`<INVOICE_RAW_TEXT_HERE>`**
+- PDF file upload
 
 ### Curl 
 
 ```bash 
 curl -X 'POST' \
-  'http://83.228.197.248:3000/ask' \
+  'http://83.228.197.248:3000/extract' \
   -H 'accept: application/json' \
   -H 'Content-Type: multipart/form-data' \
-  -F 'message=Devis #25051510 15 mai 2025 Tarif Description Prix Quantité TVA * Total Forfait 1 demi-journée 400 EUR 2 0 800 EUR TOTAL : 800 EUR * TVA non-applicable (article 293B du Code Général des Impôts) MONTPELLIER - FRANCE' \
-  -F 'model=mistral' \
-  -F 'sessionId=' \
-  -F 'walletAddress=' \
-  -F 'context=invoice' \
-  -F 'data=' \
-  -F 'file='
+  -F 'file=@Facture #88888.pdf;type=application/pdf'
 ```
 
 ### Response body 
 
 ```json 
 {
-  "output": "```json\n{\n    \"invoice_number\": \"25051510\",\n    \"issuance_date\": \"2025-05-15\",\n    \"total_amount\": 800\n}\n```",
-  "model": "mistral-large-2411",
-  "network": "arbitrum-sepolia",
-  "txHash": "0x52863cb20872a82c6b5930551e8aa4d294e10990f4b0589b0365ab48ea2a7114",
-  "explorerLink": "https://sepolia.arbiscan.io/tx/0x52863cb20872a82c6b5930551e8aa4d294e10990f4b0589b0365ab48ea2a7114",
-  "sessionId": "941bf70c-c703-4b90-89f9-6fb335b38551",
-  "usage": {
-    "input_tokens": 412,
-    "output_tokens": 27
-  }
-}
-```
-
-## Start method
-
-### Request body (curl)
-
-PDF file max size is set to 10MB.
-
-The reference ID can be left empty. 
-
-```bash
-curl -X 'POST' \
-  'http://localhost:3000/start' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: multipart/form-data' \
-  -F 'file=@Facture 12345.pdf;type=application/pdf' \
-  -F 'referenceId='
-```
-
-### Response
-
-```json 
-{
-  "path": "/Users/ju/settla/data/invoices/INV-2025-001-2025-05-06T12-24-50-747Z-f9a29999-7a8f-4020-a63a-5a9eddf53525.pdf",
-  "filename": "Facture 12345.pdf",
-  "size": 227529,
-  "timestamp": "2025-05-06T12:24:50.749Z",
-  "referenceId": "INV-2025-001"
+  "is_invoice": true,
+  "invoice_number": "25032612",
+  "total_amount": 700,
+  "target_company_name": "Epitech Digital",
+  "issue_date": "2025-03-26",
+  "due_date": "2025-04-15",
+  "payment_delay": 20,
+  "already_paid": 0,
+  "contact_name": "Michael JACKSON",
+  "contact_email": "michael@epitech.digital",
+  "contact_phone": "",
+  "contact_company_registration_number": "887640480 00018",
+  "llm_model_used": "claude-3-7-sonnet-20250219",
+  "sessionId": "8e8491b6-a2ec-4935-9293-5f04a0f3f08c"
 }
 ```
 
