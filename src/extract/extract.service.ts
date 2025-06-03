@@ -1,6 +1,6 @@
 import { Injectable, Logger, HttpException, HttpStatus } from '@nestjs/common';
 import { AppService } from '../app.service';
-import { AskResponseDto } from '../dto/ask-response.dto';
+import { ExtractResponseDto } from '../dto/extract-response.dto';
 import * as pdfParse from 'pdf-parse';
 
 @Injectable()
@@ -14,7 +14,9 @@ export class ExtractService {
    * @param file PDF file containing invoice data
    * @returns Extracted invoice information in JSON format
    */
-  async extractInvoiceData(file: Express.Multer.File): Promise<AskResponseDto> {
+  async extractInvoiceData(
+    file: Express.Multer.File,
+  ): Promise<ExtractResponseDto> {
     try {
       this.logger.log(`Processing invoice extraction: ${file.originalname}`);
 
@@ -42,33 +44,60 @@ export class ExtractService {
         'invoices', // context set to 'invoices'
       );
 
-      // Try to clean the response if it's not already in proper JSON format
-      if (result.output && !result.output.trim().startsWith('{')) {
-        // Try to extract JSON from the response if it's embedded in markdown or has extra text
-        const jsonMatch =
-          result.output.match(/```json\s*(\{.*?\})\s*```/s) ||
-          result.output.match(
-            /\{[\s\S]*"invoice_number"[\s\S]*"issuance_date"[\s\S]*"total_amount"[\s\S]*\}/,
-          );
+      // Parse the JSON from the output field
+      let extractedData;
+      try {
+        let jsonString = result.output;
 
-        if (jsonMatch && jsonMatch[1]) {
-          // Found JSON in markdown code block
-          result.output = jsonMatch[1];
-        } else if (result.output.includes('{') && result.output.includes('}')) {
-          // Try to extract anything that looks like JSON
-          const startIdx = result.output.indexOf('{');
-          const endIdx = result.output.lastIndexOf('}') + 1;
-          if (startIdx >= 0 && endIdx > startIdx) {
-            result.output = result.output.substring(startIdx, endIdx);
+        if (!jsonString) {
+          throw new Error('No output received from LLM');
+        }
+
+        // Try to clean the response if it's not already in proper JSON format
+        if (!jsonString.trim().startsWith('{')) {
+          // Try to extract JSON from the response if it's embedded in markdown or has extra text
+          const jsonMatch =
+            jsonString.match(/```json\s*(\{.*?\})\s*```/s) ||
+            jsonString.match(
+              /\{[\s\S]*"invoice_number"[\s\S]*"issuance_date"[\s\S]*"total_amount"[\s\S]*\}/,
+            );
+
+          if (jsonMatch && jsonMatch[1]) {
+            // Found JSON in markdown code block
+            jsonString = jsonMatch[1];
+          } else if (jsonString.includes('{') && jsonString.includes('}')) {
+            // Try to extract anything that looks like JSON
+            const startIdx = jsonString.indexOf('{');
+            const endIdx = jsonString.lastIndexOf('}') + 1;
+            if (startIdx >= 0 && endIdx > startIdx) {
+              jsonString = jsonString.substring(startIdx, endIdx);
+            }
           }
         }
+
+        // Parse the cleaned JSON
+        extractedData = JSON.parse(jsonString);
+
+        // Add the metadata fields
+        extractedData.llm_model_used = result.model;
+        extractedData.sessionId = result.sessionId;
+
+        this.logger.log(
+          `Successfully processed invoice extraction for ${file.originalname}`,
+        );
+
+        return extractedData;
+      } catch (parseError) {
+        this.logger.error(
+          `Failed to parse JSON from LLM output: ${parseError.message}`,
+        );
+        this.logger.debug(`Raw output was: ${result.output}`);
+
+        throw new HttpException(
+          'Failed to parse invoice data from LLM response',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
       }
-
-      this.logger.log(
-        `Successfully processed invoice extraction for ${file.originalname}`,
-      );
-
-      return result;
     } catch (error) {
       this.logger.error(
         `Error extracting invoice data: ${error.message}`,
